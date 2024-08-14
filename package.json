@@ -1,6 +1,6 @@
 {
   "name": "style-with-extract-loader",
-  "version": "4.1.0-beta.0",
+  "version": "4.1.0",
   "description": "Base on style-loader, which also extracts style content to files. Developed for web page record and replay optimization.",
   "license": "MIT",
   "repository": "Sheetaa/style-with-extract-loader",
