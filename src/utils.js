@@ -292,12 +292,17 @@ function getExportLazyStyleCode(esModule, loaderContext, request) {
     : "module.exports = exported;";
 }
 
-function getSetAttributesCode(esModule, loaderContext, options) {
+function getSetAttributesCode(
+  esModule,
+  loaderContext,
+  options,
+  idWithAttributes = [],
+) {
   let modulePath;
 
-  if (typeof options.attributes !== "undefined") {
+  if (typeof options.attributes !== "undefined" || idWithAttributes.length) {
     modulePath =
-      options.attributes.nonce !== "undefined"
+      options.attributes && options.attributes.nonce !== "undefined"
         ? stringifyRequest(
             loaderContext,
             `!${path.join(
@@ -321,6 +326,24 @@ function getSetAttributesCode(esModule, loaderContext, options) {
     : `var setAttributes = require(${modulePath});`;
 }
 
+function getContentUpdatingCode(idWithAttributes) {
+  return `var idWithAttributes = ${JSON.stringify(idWithAttributes)};
+content.forEach(function (item) {
+  var targetValue = idWithAttributes.find(value => value[0] === item[0]);
+  if (targetValue) {
+    item.attributes = targetValue[1];
+  }
+});`;
+}
+
+function getIdWithAttributes(id, attributesKey, filename, publicPath) {
+  const attributes = {
+    [attributesKey]: publicPath + filename,
+  };
+
+  return [id, attributes];
+}
+
 // eslint-disable-next-line import/prefer-default-export
 export {
   stringifyRequest,
@@ -341,4 +364,6 @@ export {
   getSetAttributesCode,
   getInsertOptionCode,
   getStyleTagTransformFnCode,
+  getContentUpdatingCode,
+  getIdWithAttributes,
 };

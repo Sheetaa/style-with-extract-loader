@@ -64,6 +64,8 @@ exports[`addStyle should work with media 1`] = `"<head><title>Title</title><styl
 
 exports[`addStyle should work with multiple styles 1`] = `"<head><title>Title</title><style>.foo { color: red }</style><style>.bar { color: blue }</style></head><body><h1>Hello world</h1></body>"`;
 
+exports[`addStyle should work with non-universal attributes 1`] = `"<head><title>Title</title><style data-key="0">.foo { color: red }</style><style data-key="1">.bar { color: blue }</style></head><body><h1>Hello world</h1></body>"`;
+
 exports[`addStyle should work with same module id in list 1`] = `"<head><title>Title</title><style>.foo { color: red }</style><style>.foo { color: green }</style></head><body><h1>Hello world</h1></body>"`;
 
 exports[`addStyle should work with source maps 1`] = `

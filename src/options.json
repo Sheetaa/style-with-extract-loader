@@ -39,6 +39,26 @@
       "description": "Transform tag and css when insert 'style' tag into the DOM",
       "link": "https://github.com/webpack-contrib/style-loader#styleTagTransform",
       "type": "string"
+    },
+    "extract": {
+      "description": "Open style extracting capability. Only works if injectType is 'styleTag', mode is 'production' and hmr is disabled.",
+      "link": "URL_ADDRESS",
+      "type": "boolean"
+    },
+    "attributesKey": {
+      "description": "Sets key for the extracted css file.",
+      "link": "URL_ADDRESS",
+      "type": "string"
+    },
+    "publicPath": {
+      "description": "Sets public path for the extracted style file.",
+      "link": "URL_ADDRESS",
+      "type": "string"
+    },
+    "filename": {
+      "description": "Sets filename for the extracted style file.",
+      "link": "URL_ADDRESS",
+      "type": "string"
     }
   },
   "additionalProperties": false

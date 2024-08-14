@@ -1007,4 +1007,18 @@ describe("addStyle", () => {
 
     expect(document.documentElement.innerHTML).toMatchSnapshot();
   });
+
+  it("should work with non-universal attributes", () => {
+    const list = [
+      ["./style-44.css", ".foo { color: red }", ""],
+      ["./style-45.css", ".bar { color: blue }", ""],
+    ];
+    list.forEach((item, index) => {
+      item.attributes = { "data-key": index }; // eslint-disable-line no-param-reassign
+    });
+
+    injectStylesIntoStyleTag(list, defaultOptions);
+
+    expect(document.documentElement.innerHTML).toMatchSnapshot();
+  });
 });

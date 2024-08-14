@@ -34,6 +34,10 @@ function modulesToDom(list, options) {
       layer: item[5],
     };
 
+    if (item.attributes) {
+      obj.attributes = item.attributes;
+    }
+
     if (indexByIdentifier !== -1) {
       stylesInDOM[indexByIdentifier].references++;
       stylesInDOM[indexByIdentifier].updater(obj);
@@ -56,6 +60,11 @@ function modulesToDom(list, options) {
 }
 
 function addElementStyle(obj, options) {
+  if (obj.attributes) {
+    options.attributes = options.attributes || {};
+    Object.assign(options.attributes, obj.attributes);
+  }
+
   const api = options.domAPI(options);
 
   api.update(obj);
@@ -67,7 +76,8 @@ function addElementStyle(obj, options) {
         newObj.media === obj.media &&
         newObj.sourceMap === obj.sourceMap &&
         newObj.supports === obj.supports &&
-        newObj.layer === obj.layer
+        newObj.layer === obj.layer &&
+        newObj.attributes === obj.attributes
       ) {
         return;
       }

@@ -359,4 +359,79 @@ describe("loader", () => {
       });
     }
   });
+
+  it('should work when the "extract" option is true', async () => {
+    expect.assertions(3);
+
+    const compiler = getCompiler(
+      "./simple.js",
+      {
+        extract: true,
+        attributesKey: "data-custom-attribute-key",
+        publicPath: "/",
+        filename: "css/[id].[contenthash:8].css",
+      },
+      {
+        mode: "production",
+      },
+    );
+    const stats = await compile(compiler);
+
+    runInJsDom("main.bundle.js", compiler, stats, (dom) => {
+      expect(dom.serialize()).toMatchSnapshot("DOM");
+    });
+
+    expect(getWarnings(stats)).toMatchSnapshot("warnings");
+    expect(getErrors(stats)).toMatchSnapshot("errors");
+  });
+
+  it('should work when the "extract" option is true and the extracted css file use default filename', async () => {
+    const compiler = getCompiler(
+      "./simple.js",
+      {
+        extract: true,
+        attributesKey: "data-custom-attribute-key",
+        publicPath: "/",
+      },
+      {
+        mode: "production",
+      },
+    );
+    const stats = await compile(compiler);
+
+    runInJsDom("main.bundle.js", compiler, stats, (dom) => {
+      expect(dom.serialize()).toMatchSnapshot("DOM");
+    });
+  });
+
+  it('should extract css file and not add attributes to tag when the "extract" option is true and attributesKey is empty', async () => {
+    expect.assertions(2);
+
+    const compiler = getCompiler(
+      "./simple.js",
+      {
+        extract: true,
+      },
+      {
+        mode: "production",
+      },
+    );
+    const stats = await compile(compiler);
+
+    runInJsDom("main.bundle.js", compiler, stats, (dom) => {
+      expect(dom.serialize()).toMatchSnapshot("DOM");
+    });
+
+    const usedFs = compiler.outputFileSystem;
+    const outputPath = stats.compilation.outputOptions.path;
+    const files = usedFs.readdirSync(outputPath);
+    const cssFileCount = files.reduce((acc, file) => {
+      if (file.endsWith(".css")) {
+        return acc + 1;
+      }
+      return acc;
+    }, 0);
+
+    expect(cssFileCount).toBe(2);
+  });
 });

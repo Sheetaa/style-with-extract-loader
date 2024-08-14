@@ -15,6 +15,26 @@ You can't use \`experiments.css\` (\`experiments.futureDefaults\` enable built-i
 ]
 `;
 
+exports[`loader should extract css file and not add attributes to tag when the "extract" option is true and attributesKey is empty: DOM 1`] = `
+"<!DOCTYPE html><html><head>
+  <title>style-loader test</title>
+  <style id="existing-style">.existing { color: yellow }</style>
+<style>body {
+  color: red;
+}
+</style><style>h1 {
+  color: blue;
+}
+</style></head>
+<body>
+  <h1>Body</h1>
+  <div class="target"></div>
+  <iframe class="iframeTarget"></iframe>
+
+
+</body></html>"
+`;
+
 exports[`loader should inject hmr code with HotModuleReplacementPlugin when the "injectType" option is "autoStyleTag": errors 1`] = `[]`;
 
 exports[`loader should inject hmr code with HotModuleReplacementPlugin when the "injectType" option is "autoStyleTag": warnings 1`] = `[]`;
@@ -274,6 +294,50 @@ exports[`loader should work when ref is negative when the "injectType" option is
 exports[`loader should work when ref is negative when the "injectType" option is "lazyStyleTag": errors 1`] = `[]`;
 
 exports[`loader should work when ref is negative when the "injectType" option is "lazyStyleTag": warnings 1`] = `[]`;
+
+exports[`loader should work when the "extract" option is true and the extracted css file use default filename: DOM 1`] = `
+"<!DOCTYPE html><html><head>
+  <title>style-loader test</title>
+  <style id="existing-style">.existing { color: yellow }</style>
+<style data-custom-attribute-key="/238.b7ec6014.css">body {
+  color: red;
+}
+</style><style data-custom-attribute-key="/467.3ad0380f.css">h1 {
+  color: blue;
+}
+</style></head>
+<body>
+  <h1>Body</h1>
+  <div class="target"></div>
+  <iframe class="iframeTarget"></iframe>
+
+
+</body></html>"
+`;
+
+exports[`loader should work when the "extract" option is true: DOM 1`] = `
+"<!DOCTYPE html><html><head>
+  <title>style-loader test</title>
+  <style id="existing-style">.existing { color: yellow }</style>
+<style data-custom-attribute-key="/css/238.b7ec6014.css">body {
+  color: red;
+}
+</style><style data-custom-attribute-key="/css/467.3ad0380f.css">h1 {
+  color: blue;
+}
+</style></head>
+<body>
+  <h1>Body</h1>
+  <div class="target"></div>
+  <iframe class="iframeTarget"></iframe>
+
+
+</body></html>"
+`;
+
+exports[`loader should work when the "extract" option is true: errors 1`] = `[]`;
+
+exports[`loader should work when the "extract" option is true: warnings 1`] = `[]`;
 
 exports[`loader should work when the "injectType" option is "autoStyleTag" and CommonJS module syntax used: DOM 1`] = `
 "<!DOCTYPE html><html><head>

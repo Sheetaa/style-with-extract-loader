@@ -31,6 +31,22 @@ describe("validate options", () => {
       success: [require.resolve("./fixtures/styleTagTransform")],
       failure: [true, []],
     },
+    extract: {
+      success: [true, false],
+      failure: ["true"],
+    },
+    attributesKey: {
+      success: ["foo", "bar"],
+      failure: [true, 1, /test/, []],
+    },
+    publicPath: {
+      success: ["/", "URL_ADDRESS"],
+      failure: [true, 1, /test/, []],
+    },
+    filename: {
+      success: ["/[id].[contenthash:8].css"],
+      failure: [1, /test/, []],
+    },
     unknown: {
       success: [],
       failure: [1, true, false, "test", /test/, [], {}, { foo: "bar" }],
@@ -60,6 +76,8 @@ describe("validate options", () => {
         stats = await compile(compiler);
       } finally {
         if (type === "success") {
+          // const errors = stats.toJson().errors;
+          // console.log(errors);
           expect(stats.hasErrors()).toBe(false);
         } else if (type === "failure") {
           const {

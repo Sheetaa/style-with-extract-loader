@@ -18,9 +18,17 @@ import {
   getSetAttributesCode,
   getInsertOptionCode,
   getStyleTagTransformFnCode,
+  getContentUpdatingCode,
+  getIdWithAttributes,
 } from "./utils";
 
+import { emitCssFile, extractStyle } from "./extract";
+
 import schema from "./options.json";
+
+const AUTO_PUBLIC_PATH = "__style_with_extract_loader_public_path_auto__";
+const LOADER_NAME = "style-with-extract-loader";
+const DEFAULT_FILENAME = "[id].[contenthash:8].css";
 
 // eslint-disable-next-line consistent-return
 const loader = function loader(content) {
@@ -59,10 +67,21 @@ loader.pitch = function pitch(request) {
     return;
   }
 
+  const callback = this.async();
   const options = this.getOptions(schema);
   const injectType = options.injectType || "styleTag";
+  const isSingleton = injectType.toLowerCase().indexOf("singleton") >= 0;
+  const isAuto = injectType.toLowerCase().indexOf("auto") >= 0;
   const esModule =
     typeof options.esModule !== "undefined" ? options.esModule : true;
+  const extract =
+    options.extract &&
+    injectType === "styleTag" &&
+    this.mode === "production" &&
+    !this.hot;
+  const { attributesKey, filename: filenameOption = DEFAULT_FILENAME } =
+    options;
+
   const runtimeOptions = {};
 
   if (options.attributes) {
@@ -78,20 +97,28 @@ loader.pitch = function pitch(request) {
       ? "module-path"
       : "selector";
 
-  switch (injectType) {
-    case "linkTag": {
-      const hmrCode = this.hot ? getLinkHmrCode(esModule, this, request) : "";
+  let publicPath = options.publicPath || this._compilation.outputOptions;
+  if (publicPath === "auto") {
+    publicPath = AUTO_PUBLIC_PATH;
+  }
 
-      // eslint-disable-next-line consistent-return
-      return `
-      ${getImportLinkAPICode(esModule, this)}
-      ${getImportInsertBySelectorCode(esModule, this, insertType, options)}
-      ${getImportLinkContentCode(esModule, this, request)}
-      ${
-        esModule
-          ? ""
-          : `content = content.__esModule ? content.default : content;`
-      }
+  const handleOutput = (idWithAttributes = []) => {
+    switch (injectType) {
+      case "linkTag": {
+        const hmrCode = this.hot ? getLinkHmrCode(esModule, this, request) : "";
+
+        // eslint-disable-next-line consistent-return
+        callback(
+          null,
+          `
+        ${getImportLinkAPICode(esModule, this)}
+        ${getImportInsertBySelectorCode(esModule, this, insertType, options)}
+        ${getImportLinkContentCode(esModule, this, request)}
+        ${
+          esModule
+            ? ""
+            : `content = content.__esModule ? content.default : content;`
+        }
 
 var options = ${JSON.stringify(runtimeOptions)};
 
@@ -101,40 +128,42 @@ var update = API(content, options);
 
 ${hmrCode}
 
-${esModule ? "export default {}" : ""}`;
-    }
-
-    case "lazyStyleTag":
-    case "lazyAutoStyleTag":
-    case "lazySingletonStyleTag": {
-      const isSingleton = injectType === "lazySingletonStyleTag";
-      const isAuto = injectType === "lazyAutoStyleTag";
-      const hmrCode = this.hot
-        ? getStyleHmrCode(esModule, this, request, true)
-        : "";
-
-      // eslint-disable-next-line consistent-return
-      return `
-      var exported = {};
-
-      ${getImportStyleAPICode(esModule, this)}
-      ${getImportStyleDomAPICode(esModule, this, isSingleton, isAuto)}
-      ${getImportInsertBySelectorCode(esModule, this, insertType, options)}
-      ${getSetAttributesCode(esModule, this, options)}
-      ${getImportInsertStyleElementCode(esModule, this)}
-      ${getStyleTagTransformFnCode(esModule, this, options, isSingleton)}
-      ${getImportStyleContentCode(esModule, this, request)}
-      ${isAuto ? getImportIsOldIECode(esModule, this) : ""}
-      ${
-        esModule
-          ? `if (content && content.locals) {
-              exported.locals = content.locals;
-            }
-            `
-          : `content = content.__esModule ? content.default : content;
-
-            exported.locals = content.locals || {};`
+${esModule ? "export default {}" : ""}`,
+        );
+        break;
       }
+
+      case "lazyStyleTag":
+      case "lazyAutoStyleTag":
+      case "lazySingletonStyleTag": {
+        const hmrCode = this.hot
+          ? getStyleHmrCode(esModule, this, request, true)
+          : "";
+
+        // eslint-disable-next-line consistent-return
+        callback(
+          null,
+          `
+        var exported = {};
+
+        ${getImportStyleAPICode(esModule, this)}
+        ${getImportStyleDomAPICode(esModule, this, isSingleton, isAuto)}
+        ${getImportInsertBySelectorCode(esModule, this, insertType, options)}
+        ${getSetAttributesCode(esModule, this, options)}
+        ${getImportInsertStyleElementCode(esModule, this)}
+        ${getStyleTagTransformFnCode(esModule, this, options, isSingleton)}
+        ${getImportStyleContentCode(esModule, this, request)}
+        ${isAuto ? getImportIsOldIECode(esModule, this) : ""}
+        ${
+          esModule
+            ? `if (content && content.locals) {
+                exported.locals = content.locals;
+              }
+              `
+            : `content = content.__esModule ? content.default : content;
+
+              exported.locals = content.locals || {};`
+        }
 
 var refs = 0;
 var update;
@@ -165,34 +194,36 @@ exported.unuse = function() {
 ${hmrCode}
 
 ${getExportLazyStyleCode(esModule, this, request)}
-`;
-    }
-
-    case "styleTag":
-    case "autoStyleTag":
-    case "singletonStyleTag":
-    default: {
-      const isSingleton = injectType === "singletonStyleTag";
-      const isAuto = injectType === "autoStyleTag";
-      const hmrCode = this.hot
-        ? getStyleHmrCode(esModule, this, request, false)
-        : "";
-
-      // eslint-disable-next-line consistent-return
-      return `
-      ${getImportStyleAPICode(esModule, this)}
-      ${getImportStyleDomAPICode(esModule, this, isSingleton, isAuto)}
-      ${getImportInsertBySelectorCode(esModule, this, insertType, options)}
-      ${getSetAttributesCode(esModule, this, options)}
-      ${getImportInsertStyleElementCode(esModule, this)}
-      ${getStyleTagTransformFnCode(esModule, this, options, isSingleton)}
-      ${getImportStyleContentCode(esModule, this, request)}
-      ${isAuto ? getImportIsOldIECode(esModule, this) : ""}
-      ${
-        esModule
-          ? ""
-          : `content = content.__esModule ? content.default : content;`
+`,
+        );
+        break;
       }
+
+      case "styleTag":
+      case "autoStyleTag":
+      case "singletonStyleTag":
+      default: {
+        const hmrCode = this.hot
+          ? getStyleHmrCode(esModule, this, request, false)
+          : "";
+
+        // eslint-disable-next-line consistent-return
+        callback(
+          null,
+          `
+        ${getImportStyleAPICode(esModule, this)}
+        ${getImportStyleDomAPICode(esModule, this, isSingleton, isAuto)}
+        ${getImportInsertBySelectorCode(esModule, this, insertType, options)}
+        ${getSetAttributesCode(esModule, this, options, idWithAttributes)}
+        ${getImportInsertStyleElementCode(esModule, this)}
+        ${getStyleTagTransformFnCode(esModule, this, options, isSingleton)}
+        ${getImportStyleContentCode(esModule, this, request)}
+        ${isAuto ? getImportIsOldIECode(esModule, this) : ""}
+        ${
+          esModule
+            ? ""
+            : `content = content.__esModule ? content.default : content;`
+        }
 
 var options = ${JSON.stringify(runtimeOptions)};
 
@@ -202,13 +233,38 @@ ${getInsertOptionCode(insertType, options)}
 options.domAPI = ${getdomAPI(isAuto)};
 options.insertStyleElement = insertStyleElement;
 
+${extract ? getContentUpdatingCode(idWithAttributes) : ""}
+
 var update = API(content, options);
 
 ${hmrCode}
 
 ${getExportStyleCode(esModule, this, request)}
-`;
+`,
+        );
+      }
     }
+  };
+
+  if (extract) {
+    extractStyle(this, LOADER_NAME, request, publicPath)
+      .then((cssModuleExports) => {
+        let idWithAttributes = [];
+
+        idWithAttributes = cssModuleExports.map(([id, content]) => {
+          const filename = emitCssFile(this, id, content, filenameOption);
+          return attributesKey
+            ? getIdWithAttributes(id, attributesKey, filename, publicPath)
+            : [id, {}];
+        });
+
+        handleOutput(idWithAttributes);
+      })
+      .catch((error) => {
+        callback(error);
+      });
+  } else {
+    handleOutput();
   }
 };
 
