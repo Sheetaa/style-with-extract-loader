@@ -68,6 +68,16 @@ module.exports = {
 };
 ```
 
+The injected style tag will be like this:
+
+```html
+<style data-custom-attribute-key="/123.xxxxxxxx.css">
+  body {
+    background: green;
+  }
+</style>
+```
+
 ## Options
 
 - [injectType](https://github.com/webpack-contrib/style-loader#injecttype)
@@ -76,10 +86,10 @@ module.exports = {
 - [styleTagTransform](https://github.com/webpack-contrib/style-loader#styleTagTransform)
 - [base](https://github.com/webpack-contrib/style-loader#base)
 - [esModule](https://github.com/webpack-contrib/style-loader#esModule)
-- [extract](#extract)
-- [attributesKey](#attributesKey)
-- [publicPath](#publicPath)
-- [filename](#filename)
+- extract
+- attributesKey
+- publicPath
+- filename
 
 ## More Information
 
