@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 4.1.0-beta.0 (2024-08-14)
+
+
+### Features
+
+* add style extraction feature ([4f0c4e6](https://github.com/Sheetaa/style-with-extract-loader/commit/4f0c4e68826ba99b28532dfb256302b65f40a2e6))
+
 ## [4.0.0](https://github.com/webpack-contrib/style-loader/compare/v3.3.3...v4.0.0) (2024-04-08)
 
 
