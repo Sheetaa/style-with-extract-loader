@@ -26,7 +26,6 @@ import { emitCssFile, extractStyle } from "./extract";
 
 import schema from "./options.json";
 
-const AUTO_PUBLIC_PATH = "__style_with_extract_loader_public_path_auto__";
 const LOADER_NAME = "style-with-extract-loader";
 const DEFAULT_FILENAME = "[id].[contenthash:8].css";
 
@@ -97,10 +96,8 @@ loader.pitch = function pitch(request) {
       ? "module-path"
       : "selector";
 
-  let publicPath = options.publicPath || this._compilation.outputOptions;
-  if (publicPath === "auto") {
-    publicPath = AUTO_PUBLIC_PATH;
-  }
+  const publicPath =
+    options.publicPath || this._compilation.outputOptions.publicPath;
 
   const handleOutput = (idWithAttributes = []) => {
     switch (injectType) {
